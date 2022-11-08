@@ -1,7 +1,8 @@
-// SPDX-License_Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
 
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/Math.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Context.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/SafeMath.sol";
@@ -57,33 +58,26 @@ contract Presale is Context, ReentrancyGuard, Ownable {
      */
     event TokensPurchased(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
-    /**
-     * @param rate Number of token units a buyer gets per wei
-     * @dev The rate is the conversion between wei and the smallest and indivisible
-     * token unit. So, if you are using a rate of 1 with a ERC20Detailed token
-     * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
-     * @param wallet Address where collected funds will be forwarded to
-     * @param token Address of the token being sold
-     */
+    
     constructor (
-        uint256 rate, 
-        address payable wallet, 
-        IERC20 token, 
-        address tokenWallet, 
-        IERC20 usdt, 
-        IERC20 bnb
-        ) public {
-        require(rate > 0, "Presale: rate is 0");
-        require(wallet != address(0), "Presale: wallet is the zero address");
-        require(address(token) != address(0), "Presale: token is the zero address");
-        require(tokenWallet != address(0), "Presale: token wallet is the zero address");
+        uint256 __rate, 
+        address payable __wallet, 
+        IERC20 __token, 
+        address __tokenWallet, 
+        IERC20 __usdt, 
+        IERC20 __bnb
+        ) {
+        require(__rate > 0, "Presale: rate is 0");
+        require(__wallet != address(0), "Presale: wallet is the zero address");
+        require(address(__token) != address(0), "Presale: token is the zero address");
+        require(__tokenWallet != address(0), "Presale: token wallet is the zero address");
 
-        _rate = rate;
-        _wallet = wallet;
-        _token = token;
-        _tokenWallet = tokenWallet;
-        _usdt = usdt;
-        _bnb = bnb;
+        _rate = __rate;
+        _wallet = __wallet;
+        _token = __token;
+        _tokenWallet = __tokenWallet;
+        _usdt = __usdt;
+        _bnb = __bnb;
         priceFeedEth = AggregatorV3Interface(0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e);
         priceFeedUsdt = AggregatorV3Interface(0xAb5c49580294Aff77670F839ea425f5b78ab3Ae7);
         priceFeedBnb = AggregatorV3Interface(0xAb5c49580294Aff77670F839ea425f5b78ab3Ae7);
@@ -95,7 +89,9 @@ contract Presale is Context, ReentrancyGuard, Ownable {
      * of 2300, which is not enough to call buyTokens. Consider calling
      * buyTokens directly when purchasing tokens from a contract.
      */
-    function () external payable {
+    fallback() external  {}
+
+    receive () external payable {
         buyTokens(_msgSender());
     }
 
@@ -225,15 +221,27 @@ contract Presale is Context, ReentrancyGuard, Ownable {
      * @return Number of tokens that can be purchased with the specified _weiAmount
      */
     function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {
-        return weiAmount.mul(_rate);
+        uint256 ethDecimals = 10 ** 18;
+        uint256 usd = uint256(getLatestPriceUsdt());
+        usd = usd.div(10 ** 8).mul(100);
+        uint256 oneCent = ethDecimals.div(usd);
+        return (weiAmount.mul(10 ** 18).div(oneCent));
     }
 
     function _getTokenFromUsdt(uint256 weiAmount) internal view returns (uint256) {
-        return weiAmount.mul(_rate);
+        uint256 usdtDecimals = 10 ** 6;
+        uint256 usd = uint256(getLatestPriceUsdt());
+        usd = usd.div(10 ** 8).mul(100);
+        uint256 oneCent = usdtDecimals.div(usd);
+        return (weiAmount.mul(10 ** 18).div(oneCent));
     }
 
     function _getTokenFromBnb(uint256 weiAmount) internal view returns (uint256) {
-        return weiAmount.mul(_rate);
+        uint256 bnbDecimals = 10 ** 18;
+        uint256 usd = uint256(getLatestPriceBnb());
+        usd = usd.div(10 ** 8).mul(100);
+        uint256 oneCent = bnbDecimals.div(usd);
+        return (weiAmount.mul(10 ** 18).div(oneCent));
     }
 
     /**
@@ -285,7 +293,7 @@ contract Presale is Context, ReentrancyGuard, Ownable {
             /*uint timeStamp*/,
             /*uint80 answeredInRound*/
         ) = priceFeedBnb.latestRoundData();
-        return price;
+        return 32482000000; // change it on deployment
     }
 
 
