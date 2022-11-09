@@ -222,26 +222,26 @@ contract Presale is Context, ReentrancyGuard, Ownable {
      */
     function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {
         uint256 ethDecimals = 10 ** 18;
-        uint256 usd = uint256(getLatestPriceUsdt());
-        usd = usd.div(10 ** 8).mul(100);
+        uint256 usd = uint256(getLatestPriceEth());
+        usd = usd.mul(100).div(10 ** 8);
         uint256 oneCent = ethDecimals.div(usd);
-        return (weiAmount.mul(10 ** 18).div(oneCent));
+        return (weiAmount.mul(10 ** 18).div(oneCent.mul(2)));
     }
 
     function _getTokenFromUsdt(uint256 weiAmount) internal view returns (uint256) {
         uint256 usdtDecimals = 10 ** 6;
         uint256 usd = uint256(getLatestPriceUsdt());
-        usd = usd.div(10 ** 8).mul(100);
+        usd = usd.mul(100).div(10 ** 8);
         uint256 oneCent = usdtDecimals.div(usd);
-        return (weiAmount.mul(10 ** 18).div(oneCent));
+        return (weiAmount.mul(10 ** 18).div(oneCent.mul(2)));
     }
 
     function _getTokenFromBnb(uint256 weiAmount) internal view returns (uint256) {
         uint256 bnbDecimals = 10 ** 18;
         uint256 usd = uint256(getLatestPriceBnb());
-        usd = usd.div(10 ** 8).mul(100);
+        usd = usd.mul(100).div(10 ** 8);
         uint256 oneCent = bnbDecimals.div(usd);
-        return (weiAmount.mul(10 ** 18).div(oneCent));
+        return (weiAmount.mul(10 ** 18).div(oneCent.mul(2)));
     }
 
     /**
